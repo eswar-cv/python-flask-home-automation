@@ -60,7 +60,7 @@
         <div id = "FingerprintManage">
             <div id = "FingerprintManage_option" class = "First" onclick = "sendinfo('fingerprint', 'add')">Add</div>
             <div id = "FingerprintManage_option" onclick = "sendinfo('fingerprint', 'delete')">Delete</div>
-            <div id = "FingerprintManage_option" class = "Last" onclick = "sendinfo('fingerprint', 'list')">List</div>
+            <!-- <div id = "FingerprintManage_option" class = "Last" onclick = "sendinfo('fingerprint', 'list')">List</div> -->
             <div id = "FingerprintStatus" class = "TextCenter">Fingerprint Status: <span id = "fsshow"></span></div>
         </div>
     </div>
@@ -121,8 +121,8 @@
                 }
                 else{
                     light_controls[i].style.borderColor = "#f08989";
-                    light_controls[i].style.backgroundColor = "#4b4b4b";
-                    light_controls[i].style.color = "#eeeeee";
+                    light_controls[i].style.backgroundColor = "var(--option-bg)";
+                    light_controls[i].style.color = "var(--option-fg)";
                 }
             }
             var lightimage = document.querySelector("#LightImage");
@@ -136,14 +136,14 @@
                 }
                 else{
                     fan_controls[i].style.borderColor = "#f08989";
-                    fan_controls[i].style.backgroundColor = "#4b4b4b";
-                    fan_controls[i].style.color = "#eeeeee";
+                    fan_controls[i].style.backgroundColor = "var(--option-bg)";
+                    fan_controls[i].style.color = "var(--option-fg)";
                 }
             }
             var fanimage = document.querySelector("#FanImage");
             if (Data["fan"]["status"] == "on") fanimage.classList.add("rotate");
             else fanimage.classList.remove("rotate");
-            $("#livecamera").attr("src", "{{ url_for('video_feed') }}?" + new Date().getTime());
+            // $("#livecamera").attr("src", "{{ url_for('video_feed') }}?" + new Date().getTime());
         }
         setInterval(UpdatePage, 200);
 

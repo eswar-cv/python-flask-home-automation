@@ -40,11 +40,16 @@ Data = {
 def gen():
     if platform != "win32":
         start = time()
-        exec('camera.capture("/home/pi/mainfiles/pic.jpg", use_video_port= True)')
-        print(f"image saved. time taken: {time() - start}")
+        try:
+            exec('camera.capture("/home/pi/mainfiles/pic.jpg", use_video_port= True)')
+            print(f"image saved. time taken: {time() - start}")
+        except:
+            os.system("raspistill -o /home/pi/mainfiles/pic.jpg")
+        return (b'--frame\r\n' 
+            b'Content-Type: image/jpeg\r\n\r\n' + open('/home/pi/mainfiles/pic.jpg', 'rb').read() + b'\r\n') 
     else:
         ui.screenshot().save("pic.jpg")
-    return (b'--frame\r\n' 
+        return (b'--frame\r\n' 
             b'Content-Type: image/jpeg\r\n\r\n' + open('pic.jpg', 'rb').read() + b'\r\n') 
 
 
@@ -52,8 +57,7 @@ def gen():
 def video_feed():
     print("Video feed route called")
     """Video streaming route. Put this in the src attribute of an img tag.""" 
-    return Response(gen(), 
-                   mimetype='multipart/x-mixed-replace; boundary=frame') 
+    return Response(gen(), mimetype='multipart/x-mixed-replace; boundary=frame') 
 
 # sending main page to user
 @app.route("/")
@@ -125,5 +129,5 @@ if platform != "win32":
             ser.write((input("--> ") + "\n").encode("utf-8"))
 
 if __name__ == "__main__":
-    app.run(debug=True, port=80, host='0.0.0.0', threaded = True)
+    app.run(port=80, host='0.0.0.0', threaded = True)
 

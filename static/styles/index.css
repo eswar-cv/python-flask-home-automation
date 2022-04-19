@@ -7,6 +7,24 @@ html{
 	--component-border: #606060;
 	--component-background: #282828;
 	--TitleColor: #bbbbbb;
+	--fingerprintmanage-bg: #7b7b7b;
+	--fingerprintmanage-fg: #111111;
+	--option-fg: #eeeeee;
+	--option-bg: #4b4b4b;
+	font-family: 'Segoe UI', Tahoma, Verdana, sans-serif
+}
+html{
+	--background: #dddddd;
+	--header-background: #cccccc;
+	--header-height: 60px;
+	--header: #000000;
+	--component-border: #606060;
+	--component-background: #cccccc;
+	--TitleColor: #34414f;
+	--fingerprintmanage-bg: #7b7b7b;
+	--fingerprintmanage-fg: #e5e5e5;
+	--option-fg: #4b4b4b;
+	--option-bg: #eeeeee;
 	font-family: 'Segoe UI', Tahoma, Verdana, sans-serif
 }
 body{
@@ -83,8 +101,8 @@ header{
 #LC_option, #FC_option{
 	width: calc(100px + 5vw);
 	height: calc(20px + 5vh);
-	background-color: #4b4b4b;
-	color: #eeeeee;
+	background-color: var(--option-bg);
+	color: var(--option-fg);
 	margin: 2px auto 2px auto;
 	border: 2px solid #f08989;
 	display: flex;
@@ -163,8 +181,8 @@ header{
 #FingerprintManage_option{
     width: 80%;
 	height: 20%;
-	background-color: #4b4b4b;
-	color: #eeeeee;
+	background-color: var(--fingerprintmanage-bg);
+	color: var(--fingerprintmanage-fg);
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -172,12 +190,13 @@ header{
 }
 #FingerprintStatus{
 	display: flex;
+	justify-content: center;
+	align-items: center;
 	width: 80%;
 	height: 25%;
 	background-color: #f08989;
 	color: #000000;
-	border-radius: 8px;
-	
+	border-radius: 0px 0px 8px 8px;
 }
 #FingerprintStatus, #FingerprintManage_option{
 	font-size: calc(20px + 0.25vw);
