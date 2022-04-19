@@ -33,7 +33,7 @@ Data = {
         "status": "on", "mode": "auto"
     },
     "fingerprint": {
-        "status": "off", "mode": "None"
+        "last_event": None, "mode": "Checkikng for fingerprint"
     }
 }
 
@@ -89,13 +89,13 @@ def listen():
     #         #SEND_DATA = False
     return Response(json.dumps(Data), mimetype='text/event-stream')
 
-@app.route("/setmode/<main>/<sub>")
-def showinfo(main, sub):
-    print(f"{main} --> {sub}")
-    ProcessMode(main, sub)
+@app.route("/setmode/<main>/<sub>/<number>")
+def showinfo(main, sub, number):
+    print(f"{main} --> {sub} --> {number}")
+    ProcessMode(main, sub, number)
     return {}
 
-def ProcessMode(main, sub):
+def ProcessMode(main, sub, number = -1):
     global Data
     if main in ["light", "fan"]:
         Data[main]["mode"] = sub
@@ -103,9 +103,14 @@ def ProcessMode(main, sub):
             Data[main]["status"] = sub
         if main == "light" and platform != "win32": 
             SerialWrite(f"roomlight {sub}")
+    if main == ["fingerprint"]:
+        if number in range(0, 101):
+            Data["fingerprint"]["last"] = f"{sub} id {number}"
+            if platform != "win32":
+                SerialWrite(f"{main} {sub} a a {number}")
     SEND_DATA = True
 
-#!/usr/bin/env python3
+#!/usr/bin/env python3hrthrthhytktyjkyfxdghfhjrefreshfcuk
 if platform == "win32":
     serial = "serial"
 if platform != "win32":
@@ -129,5 +134,5 @@ if platform != "win32":
             ser.write((input("--> ") + "\n").encode("utf-8"))
 
 if __name__ == "__main__":
-    app.run(port=80, host='0.0.0.0', threaded = True)
-
+    app.run(debug = True, port=80, host='0.0.0.0', threaded = True)
+# update now

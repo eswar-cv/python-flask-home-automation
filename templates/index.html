@@ -58,8 +58,16 @@
     </div>
     <div id="Component" style = "height: calc(20vh + 20vw);">
         <div id = "FingerprintManage">
-            <div id = "FingerprintManage_option" class = "First" onclick = "sendinfo('fingerprint', 'add')">Add</div>
-            <div id = "FingerprintManage_option" onclick = "sendinfo('fingerprint', 'delete')">Delete</div>
+            <div id="FingerprintControl">
+                <div id = "FingerprintManage_option" class = "First" onclick = "sendinfo('fingerprint', 'add', document.querySelector('#FingerprintAddNumber').value)">Add</div>
+                <input id = "FingerprintAddNumber" type = "number" min = "0" max = "100"/>
+            </div>
+            <div id="FingerprintControl">
+                <div id = "FingerprintManage_option" onclick = "sendinfo('fingerprint', 'delete', document.querySelector('#FingerprintDeleteNumber').value)">Delete</div>
+                <input id = "FingerprintDeleteNumber" type = "number" min = "0" max = "100"/>
+            </div>
+            
+            
             <!-- <div id = "FingerprintManage_option" class = "Last" onclick = "sendinfo('fingerprint', 'list')">List</div> -->
             <div id = "FingerprintStatus" class = "TextCenter">Fingerprint Status: <span id = "fsshow"></span></div>
         </div>
@@ -83,11 +91,21 @@
 
 
     <script>
+        const sleep = (milliseconds) => {
+            return new Promise(resolve => setTimeout(resolve, milliseconds))
+        } 
+        if (history.scrollRestoration) {
+            history.scrollRestoration = 'manual';
+        } else {
+            window.onbeforeunload = function () {
+                window.scrollTo(0, 0);
+            }
+        }
         function refresh_camera(){
             $("#livecamera").attr("src", "{{ url_for('video_feed') }}?" + new Date().getTime());
         }
-        function sendinfo(main, sub){
-            $.get("/setmode/" + main + "/" + sub, function(data, status){})
+        function sendinfo(main, sub, id){
+            $.get("/setmode/" + main + "/" + sub + "/" + id, function(data, status){})
             UpdatePage();
         }
 
@@ -145,7 +163,8 @@
             else fanimage.classList.remove("rotate");
             // $("#livecamera").attr("src", "{{ url_for('video_feed') }}?" + new Date().getTime());
         }
-        setInterval(UpdatePage, 200);
+        setInterval(UpdatePage, 3000);F
+        setInterval(refresh_camera, 5000);
 
 
 

@@ -13,20 +13,20 @@ html{
 	--option-bg: #4b4b4b;
 	font-family: 'Segoe UI', Tahoma, Verdana, sans-serif
 }
-html{
+/* html{
 	--background: #dddddd;
 	--header-background: #cccccc;
 	--header-height: 60px;
 	--header: #000000;
 	--component-border: #606060;
-	--component-background: #cccccc;
+	--component-background: #919191;
 	--TitleColor: #34414f;
 	--fingerprintmanage-bg: #7b7b7b;
 	--fingerprintmanage-fg: #e5e5e5;
 	--option-fg: #4b4b4b;
 	--option-bg: #eeeeee;
 	font-family: 'Segoe UI', Tahoma, Verdana, sans-serif
-}
+} */
 body{
 	margin: 0;
 	background-color: var(--background);
@@ -178,15 +178,49 @@ header{
 	justify-content: center;
 	align-items: center;
 }
+#FingerprintControl{
+	width: 100%;
+	height: 20%;
+	margin: 5px;
+	display: flex;
+	flex-direction: row;
+
+}
+#FingerprintControl input{
+	/* width: 10%;
+	height: 96%; */
+	width: 0;
+	height: 90%;
+	flex-grow: 1;
+	margin: 0% 3%;
+	/* margin: 0% 3% 0% 3%; */
+	min-width: 30px;
+	border-radius: 5px;
+	font-size: calc(1vw + 1vh);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+input:focus, textarea:focus, select:focus{
+	outline: none;
+}
+input[type='number']::-webkit-inner-spin-button, 
+input[type='number']::-webkit-outer-spin-button { 
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+	text-align: center;
+  }
 #FingerprintManage_option{
     width: 80%;
-	height: 20%;
+	height: 100%;
 	background-color: var(--fingerprintmanage-bg);
 	color: var(--fingerprintmanage-fg);
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	margin: 5px;
+	margin-left: 1%;
 }
 #FingerprintStatus{
 	display: flex;
@@ -194,7 +228,7 @@ header{
 	align-items: center;
 	width: 80%;
 	height: 25%;
-	background-color: #f08989;
+	background-color: #76d6ff;
 	color: #000000;
 	border-radius: 0px 0px 8px 8px;
 }
@@ -227,4 +261,3 @@ header{
 	
 	}
 }
-
