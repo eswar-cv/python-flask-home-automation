@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src = "https://code.jquery.com/jquery-3.6.0.min.js"> </script>
+    <script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+    <title>Smart and Secure Home</title>
+    <link rel= "stylesheet" type= "text/css" href= "/static/styles/index.css">
+</head>
+<body>
+
+    <header class = "TextCenter">
+        Smart and Secure Home
+    </header>
+
+    <div id = "Title" class = "TextCenter">
+        Light Control
+    </div>
+    <div id="Component" style = "height: calc(20vh + 20vw);">
+        <div id="Light">
+            <a>
+                <img id = "LightImage" src = "/static/light_on.png"/>
+            </a>
+        </div>
+        <div id="LightControl">
+            <div id="LC">
+                <div id="LC_option" class  = "First" onclick = "sendinfo('light', 'auto')">Auto</div>
+                <div id="LC_option" onclick = "sendinfo('light', 'on')">On</div>
+                <div id="LC_option" class = "Last" onclick = "sendinfo('light', 'off')">Off</div>
+            </div>
+        </div>
+    </div>
+    <div id = "Title" class = "TextCenter">
+        Fan Control
+    </div>
+    <div id="Component" style = "height: calc(20vh + 20vw);">
+        <div id="Fan">
+            <a>
+                <img id = "FanImage" src = "/static/fan.png"/>
+            </a>
+        </div>
+        <div id="FanControl">
+            <div id="FC">
+                <div id="FC_option" class  = "First" onclick = "sendinfo('fan', 'auto')">Auto</div>
+                <div id="FC_option" onclick = "sendinfo('fan', 'on')">On</div>
+                <div id="FC_option" class = "Last" onclick = "sendinfo('fan', 'off')">Off</div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id = "Title" class = "TextCenter">
+        Fingerprint Control
+    </div>
+    <div id="Component" style = "height: calc(20vh + 20vw);">
+        <div id = "FingerprintManage">
+            <div id = "FingerprintManage_option" class = "First" onclick = "sendinfo('fingerprint', 'add')">Add</div>
+            <div id = "FingerprintManage_option" onclick = "sendinfo('fingerprint', 'delete')">Delete</div>
+            <div id = "FingerprintManage_option" class = "Last" onclick = "sendinfo('fingerprint', 'list')">List</div>
+            <div id = "FingerprintStatus" class = "TextCenter">Fingerprint Status: <span id = "fsshow"></span></div>
+        </div>
+    </div>
+
+
+    <div id = "Title" class = "TextCenter">
+        Camera Control
+    </div>
+    <div id="Component" style = "height: calc(20vh + 20vw);">
+        <div id = "CamMain">
+            <img id = "livecamera" src="{{ url_for('video_feed') }}"/>
+        
+            <button id = "CameraRefresh" onclick = "refresh_camera()">Refresh Feed</button>
+        </div>
+        
+    </div>
+
+
+
+
+
+    <script>
+        function refresh_camera(){
+            $("#livecamera").attr("src", "{{ url_for('video_feed') }}?" + new Date().getTime());
+        }
+        function sendinfo(main, sub){
+            $.get("/setmode/" + main + "/" + sub, function(data, status){})
+            UpdatePage();
+        }
+
+        function UpdatePage(){
+            $.get("/listen", function(data, status){
+                var details = JSON.parse(data);
+                //console.log(details);
+                change_status(details);
+            })
+        }
+        function change_status(Data){
+            var light_controls = document.querySelectorAll("#LC_option");
+            var fan_controls = document.querySelectorAll("#FC_option");
+            //camimage.src = "/static/cam.png";
+            var lightstate;
+            var fanstate;
+            var fingerprintstate;
+            // getting the status of all components
+            if (Data["light"]["mode"] == "auto") lightstate = 0;
+            else if  (Data["light"]["mode"] == "on") lightstate = 1;
+            else if (Data["light"]["mode"] == "off") lightstate = 2;
+            if (Data["fan"]["mode"] == "auto") fanstate = 0;
+            else if  (Data["fan"]["mode"] == "on") fanstate = 1;
+            else if (Data["fan"]["mode"] == "off") fanstate = 2;
+            // changing light components
+            for (let i = 0; i < 3; i++){
+                if(i == lightstate){
+                    light_controls[i].style.borderColor = "#89f089";
+                    light_controls[i].style.backgroundColor = "#89f089";
+                    light_controls[i].style.color = "#222222";
+                }
+                else{
+                    light_controls[i].style.borderColor = "#f08989";
+                    light_controls[i].style.backgroundColor = "#4b4b4b";
+                    light_controls[i].style.color = "#eeeeee";
+                }
+            }
+            var lightimage = document.querySelector("#LightImage");
+            lightimage.src = "/static/light_" + Data["light"]["status"] + ".png";
+            // done changing light components
+            for (let i = 0; i < 3; i++){
+                if(i == fanstate){
+                    fan_controls[i].style.borderColor = "#89f089";
+                    fan_controls[i].style.backgroundColor = "#89f089";
+                    fan_controls[i].style.color = "#222222";
+                }
+                else{
+                    fan_controls[i].style.borderColor = "#f08989";
+                    fan_controls[i].style.backgroundColor = "#4b4b4b";
+                    fan_controls[i].style.color = "#eeeeee";
+                }
+            }
+            var fanimage = document.querySelector("#FanImage");
+            if (Data["fan"]["status"] == "on") fanimage.classList.add("rotate");
+            else fanimage.classList.remove("rotate");
+            $("#livecamera").attr("src", "{{ url_for('video_feed') }}?" + new Date().getTime());
+        }
+        setInterval(UpdatePage, 200);
+
+
+
+        //SET THE RTSP STREAM ADDRESS HERE
+        // var address = "rtsp://192.168.0.101/mpeg4/1/media.3gp";
+
+        // var output = '<object width="640" height="480" id="qt" classid="clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B" codebase="http://www.apple.com/qtactivex/qtplugin.cab">';
+        //     output += '<param name="src" value="'+address+'">';
+        //     output += '<param name="autoplay" value="true">';
+        //     output += '<param name="controller" value="false">';
+        //     output += '<embed id="plejer" name="plejer" src="/poster.mov" bgcolor="000000" width="640" height="480" scale="ASPECT" qtsrc="'+address+'"  kioskmode="true" showlogo=false" autoplay="true" controller="false" pluginspage="http://www.apple.com/quicktime/download/">';
+        //     output += '</embed></object>';
+
+        //     //SET THE DIV'S ID HERE
+        //     document.getElementById("the_div_that_will_hold_the_player_object").innerHTML = output;
+            
+    </script>
+</body>
+
+</html>
+
+                                                                
