@@ -1,19 +1,32 @@
 import json
+#!/usr/bin/env python3
+import serial
+from time import time
+from threading import Thread
+from multiprocessing import Process
 from sys import platform
 from gevent.pywsgi import WSGIServer
 from flask import Flask, Response, render_template, stream_with_context
 from gevent import monkey
 import os
-if platform != "win32":
-    exec("import serial")
-    exec("from picamera import PiCamera")
-    exec("camera = PiCamera()")
-else:
-    import pyautogui as ui
-from time import time, sleep
-from threading import Thread
-
-from multiprocessing import Process
+import RPi.GPIO as GPIO
+from mpu6050 import mpu6050
+sensor = mpu6050(0x68)
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BOARD)
+from time import sleep
+GPIO.setup(16, GPIO.OUT)
+GPIO.setup(18, GPIO.OUT)
+OPEN = 16
+CLOSE = 18
+GPIO.setmode(GPIO.BOARD)
+GPIO.cleanup()
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(16, GPIO.OUT)
+GPIO.setup(18, GPIO.OUT)
+GPIO.setup(37, GPIO.OUT)
+    #exec("from picamera import PiCamera")
+    #exec("camera = PiCamera()")
 # monkey.patch_all()
 TEMPLATE_DIR = os.path.abspath('../templates')
 STATIC_DIR = os.path.abspath('../static')
@@ -22,7 +35,12 @@ app = Flask(__name__)
 counter = 0
 SEND_DATA = True
 
-
+def DoorControl(PORT, duration):
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.output(PORT, GPIO.HIGH)
+    sleep(duration)
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.output(PORT, GPIO.LOW)
 
 # Main Data Structure
 Data = {
@@ -34,17 +52,15 @@ Data = {
     },
     "fingerprint": {
         "last_event": None, "mode": "Checkikng for fingerprint"
-    }
+    },
+    "gasreading": 0,
+    "temperature": {},
 }
 
 def gen():
     if platform != "win32":
-        start = time()
-        try:
-            exec('camera.capture("/home/pi/mainfiles/pic.jpg", use_video_port= True)')
-            print(f"image saved. time taken: {time() - start}")
-        except:
-            os.system("raspistill -o /home/pi/mainfiles/pic.jpg")
+        #start = time()
+        #os.system("raspistill -o /home/pi/mainfiles/pic.jpg")
         return (b'--frame\r\n' 
             b'Content-Type: image/jpeg\r\n\r\n' + open('/home/pi/mainfiles/pic.jpg', 'rb').read() + b'\r\n') 
     else:
@@ -93,7 +109,12 @@ def listen():
 def showinfo(main, sub, number):
     print(f"{main} --> {sub} --> {number}")
     ProcessMode(main, sub, number)
-    return {}
+    return Response(json.dumps(Data), mimetype='text/event-stream')
+
+def DoorUnlock():
+    DoorControl(OPEN, 4.5)
+    sleep(5)
+    DoorControl(CLOSE, 4.5)
 
 def ProcessMode(main, sub, number = -1):
     global Data
@@ -103,36 +124,100 @@ def ProcessMode(main, sub, number = -1):
             Data[main]["status"] = sub
         if main == "light" and platform != "win32": 
             SerialWrite(f"roomlight {sub}")
-    if main == ["fingerprint"]:
-        if number in range(0, 101):
+    if main == "fingerprint":
+        print("Processing fingerprint command")
+        if int(number) in range(0, 101):
+            print("Sending input to arduino")
             Data["fingerprint"]["last"] = f"{sub} id {number}"
             if platform != "win32":
-                SerialWrite(f"{main} {sub} a a {number}")
+                print((f"{main} {sub} _ _ {number}"))
+                SerialWrite(f"{main} {sub} _ _ {number}")
     SEND_DATA = True
 
-#!/usr/bin/env python3hrthrthhytktyjkyfxdghfhjrefreshfcuk
-if platform == "win32":
-    serial = "serial"
-if platform != "win32":
-    ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
-    ser.reset_input_buffer()
+#!/usr/bin/env python3
+ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
+ser.reset_input_buffer()
 
-    def SerialRead():
-        while True:
-            print("Waiting for serial input")
+def UpdateTemp():
+    while True:
+        try:
+            GPIO.output(37, GPIO.LOW)
+            readings = sensor.get_all_data()
+            Data["temperature"] = int(readings[2])
+        except:
+            GPIO.output(37, GPIO.LOW)
+            print("Failed to get data from sensor")
+            Data["temperature"] = 30
+        #Data["fan"] = {'status': 'off', 'mode': 'off'}
+        #print(Data["fan"])
+        if ((Data["temperature"] > 25 and Data["fan"]["mode"] == "auto") or Data["fan"]["mode"] == "on") and Data["fan"]["mode"] != "off":
+            if Data["fan"]["mode"] != "off" and Data["fan"]["status"] != "off":
+                GPIO.output(37, GPIO.LOW)
+                GPIO.output(37, GPIO.HIGH)
+                print("\nFan On\n")
+                Data["fan"]["status"] = "on"
+        else:
+            GPIO.output(37, GPIO.LOW)
+            print("\nFan On\n")
+            Data["fan"]["status"] = "off"
+        if Data["fan"]["mode"] == "off":
+            print("\nFan Off\n")
+            GPIO.output(37, GPIO.LOW)
+            Data["fan"]["status"] = "off"
+            
+        print(f"Temperature: {Data['temperature']}")
+        sleep(5)
+Thread(target = UpdateTemp).start()
+
+def DoorControl(PORT, duration):
+    GPIO.output(PORT, GPIO.HIGH)
+    sleep(duration)
+    GPIO.output(PORT, GPIO.LOW)
+    
+def SerialRead():
+    while True:
+        #try:
             line = ser.readline().decode('utf-8').rstrip()
             if line != "" and line != "\n":
-                print(f"| {line}")
-    Thread(target = SerialRead).start()
+                if "reportchange" in line:
+                    ProcessChange(line);
+                else:
+                    print(f"| {line}")
+        #except KeyboardInterrupt:
+        #    exit
+        #except:
+        #    print("\n\nError occoured while reading data form serial connection\n\n")
+unlocking = False
+def ProcessChange(line):
+    global unlocking
+    if "reportchange fingerprint detected" in line and unlocking == False:
+        unlocking = True
+        GPIO.setmode(GPIO.BOARD)
+        DoorUnlock()
+        unlocking = False
+    else:
+        line = line.split()
+        if line[1] == "gassensor":
+            print(f"Gassensor {line[2]}")
+            gasreading = int(line[2])
+            Data["gasreading"] = gasreading;
+            
+Process(target = SerialRead).start()
+def CaptureFeed():
+    while True:
+        #os.system("raspistill -t 10000 -tl 1000 -o /home/pi/mainfiles/pic.jpg")
+        os.system("raspistill -o /home/pi/mainfiles/pic.jpg")
+        print("Stored image")
+        sleep(2)
+#Process(target = CaptureFeed).start()
+def SerialWrite(string):
+    ser.write((string + "\n").encode("utf-8"))
 
-    def SerialWrite(string):
-        ser.write((string + "\n").encode("utf-8"))
 
-
-    def SerialWriteUserInput():
-        while True:
-            ser.write((input("--> ") + "\n").encode("utf-8"))
+def SerialWriteUserInput():
+    while True:
+        ser.write((input("--> ") + "\n").encode("utf-8"))
 
 if __name__ == "__main__":
-    app.run(debug = True, port=80, host='0.0.0.0', threaded = True)
+    app.run(debug = True, port=8000, host='0.0.0.0', threaded = True)
 # update now

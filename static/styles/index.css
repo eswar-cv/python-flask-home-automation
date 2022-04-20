@@ -13,7 +13,7 @@ html{
 	--option-bg: #4b4b4b;
 	font-family: 'Segoe UI', Tahoma, Verdana, sans-serif
 }
-/* html{
+html{
 	--background: #dddddd;
 	--header-background: #cccccc;
 	--header-height: 60px;
@@ -26,7 +26,7 @@ html{
 	--option-fg: #4b4b4b;
 	--option-bg: #eeeeee;
 	font-family: 'Segoe UI', Tahoma, Verdana, sans-serif
-} */
+} 
 body{
 	margin: 0;
 	background-color: var(--background);
